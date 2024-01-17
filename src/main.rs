@@ -10,6 +10,8 @@ use std::process;
 use std::str::FromStr;
 use std::sync::mpsc::{channel, Sender};
 use std::thread;
+use std::time::Duration;
+
 
 const MAX: u16 = 65535;
 struct Arguments {
@@ -65,8 +67,13 @@ impl Arguments {
 fn scan(tx: Sender<u16>, start_port: u16, addr: IpAddr, num_threads: u16) {
     
     let mut port: u16 = start_port + 1; 
+    let timeout = Duration::from_millis(500);
+
     loop {
-        match TcpStream::connect((addr, port)) {
+        let socket_addr = (addr, port);
+        let connection_result = TcpStream::connect_timeout(&socket_addr.into(), timeout);
+
+        match connection_result {
             Ok(_) => {
                 print!(".");
                 io::stdout().flush().unwrap();
@@ -120,3 +127,4 @@ fn main() {
         println!("{} is open", v);
     }
 }
+
